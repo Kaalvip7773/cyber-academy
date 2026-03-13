@@ -1,55 +1,50 @@
-const API_KEY = "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"
+const API_KEY="YOUR_GROQ_API_KEY"
 
-const MODEL = "llama-3.3-70b-versatile"
+const MODEL="llama-3.3-70b-versatile"
 
-const SYSTEM_PROMPT =
-"You are WARM AI, a world-class cybersecurity and coding expert. Provide highly detailed, functional, and complete technical code."
+const SYSTEM_PROMPT="You are WARM AI Designed By @KAALCRACKERYT, a world-class cybersecurity and coding expert. Provide highly detailed functional code."
 
-const chat = document.getElementById("chat")
-const input = document.getElementById("prompt")
+const chat=document.getElementById("chat")
+const input=document.getElementById("prompt")
+const sendBtn=document.getElementById("sendBtn")
 
+function addMessage(text,type){
 
-
-function addMessage(text, type){
-
-const div = document.createElement("div")
-
-div.className = "message " + type
+const div=document.createElement("div")
+div.className="message "+type
 
 if(text.includes("```")){
 
-div.innerHTML = formatCode(text)
+div.innerHTML=formatCode(text)
 
 }else{
 
-div.textContent = text
+div.textContent=text
 
 }
 
 chat.appendChild(div)
 
-chat.scrollTop = chat.scrollHeight
+chat.scrollTop=chat.scrollHeight
 
 }
 
-
-
 function formatCode(text){
 
-const parts = text.split("```")
+const parts=text.split("```")
 
-let result=""
+let html=""
 
 for(let i=0;i<parts.length;i++){
 
 if(i%2==0){
 
-result += "<p>"+parts[i]+"</p>"
+html+="<p>"+parts[i]+"</p>"
 
 }else{
 
-result += `
-<button class="copy-btn" onclick="copyCode(this)">Copy</button>
+html+=`
+<button class="copy" onclick="copyCode(this)">Copy</button>
 <pre><code>${parts[i]}</code></pre>
 `
 
@@ -57,29 +52,25 @@ result += `
 
 }
 
-return result
+return html
 
 }
-
-
 
 function copyCode(btn){
 
-const code = btn.nextElementSibling.innerText
+const code=btn.nextElementSibling.innerText
 
 navigator.clipboard.writeText(code)
 
-btn.innerText="Copied!"
+btn.innerText="Copied"
 
-setTimeout(()=>btn.innerText="Copy",2000)
+setTimeout(()=>btn.innerText="Copy",1500)
 
 }
 
-
-
 async function sendMessage(){
 
-const prompt = input.value.trim()
+const prompt=input.value.trim()
 
 if(!prompt) return
 
@@ -87,9 +78,11 @@ addMessage(prompt,"user")
 
 input.value=""
 
+addMessage("Thinking...","ai")
 
+try{
 
-const response = await fetch(
+const res=await fetch(
 "https://api.groq.com/openai/v1/chat/completions",
 {
 method:"POST",
@@ -113,22 +106,24 @@ messages:[
 }
 )
 
-const data = await response.json()
+const data=await res.json()
 
-const reply = data.choices[0].message.content
+chat.lastChild.remove()
 
-addMessage(reply,"ai")
+addMessage(data.choices[0].message.content,"ai")
 
-}
+}catch(e){
 
+chat.lastChild.remove()
 
-
-input.addEventListener("keypress",function(e){
-
-if(e.key==="Enter"){
-
-sendMessage()
+addMessage("Error connecting AI","ai")
 
 }
 
+}
+
+sendBtn.onclick=sendMessage
+
+input.addEventListener("keypress",e=>{
+if(e.key==="Enter") sendMessage()
 })
