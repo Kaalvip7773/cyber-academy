@@ -1,66 +1,114 @@
-// MATRIX EFFECT
+const API_KEY = "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"
+
+const MODEL = "llama-3.3-70b-versatile"
+
+const SYSTEM_PROMPT =
+"You are WARM AI, a world-class cybersecurity and coding expert. Provide highly detailed, functional, and complete technical code."
+
+
+async function askAI(){
+
+const prompt = document.getElementById("prompt").value
+
+const chat = document.getElementById("chat")
+
+chat.innerHTML += "<p>> " + prompt + "</p>"
+
+document.getElementById("prompt").value = ""
+
+const response = await fetch(
+"https://api.groq.com/openai/v1/chat/completions",
+{
+method:"POST",
+
+headers:{
+"Authorization":"Bearer " + API_KEY,
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+
+model:MODEL,
+
+messages:[
+{role:"system",content:SYSTEM_PROMPT},
+{role:"user",content:prompt}
+],
+
+temperature:0.7
+
+})
+
+}
+)
+
+const data = await response.json()
+
+const reply = data.choices[0].message.content
+
+chat.innerHTML += "<p style='color:#0ff'>" + reply + "</p>"
+
+chat.scrollTop = chat.scrollHeight
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* MATRIX EFFECT */
 
 const canvas = document.getElementById("matrix")
+
 const ctx = canvas.getContext("2d")
 
 canvas.height = window.innerHeight
 canvas.width = window.innerWidth
 
-let letters = "01"
-letters = letters.split("")
+const letters = "01"
 
-let fontSize = 14
-let columns = canvas.width / fontSize
+const matrix = letters.split("")
 
-let drops = []
+const font_size = 14
 
-for(let i=0;i<columns;i++){
-drops[i]=1
-}
+const columns = canvas.width / font_size
+
+const drops = []
+
+for(let x = 0; x < columns; x++)
+drops[x] = 1
 
 function draw(){
 
-ctx.fillStyle="rgba(0,0,0,0.05)"
+ctx.fillStyle = "rgba(0,0,0,0.05)"
+
 ctx.fillRect(0,0,canvas.width,canvas.height)
 
-ctx.fillStyle="#00ff9f"
-ctx.font=fontSize+"px monospace"
+ctx.fillStyle = "#0f0"
 
-for(let i=0;i<drops.length;i++){
+ctx.font = font_size + "px monospace"
 
-let text = letters[Math.floor(Math.random()*letters.length)]
+for(let i = 0; i < drops.length; i++){
 
-ctx.fillText(text,i*fontSize,drops[i]*fontSize)
+const text = matrix[Math.floor(Math.random()*matrix.length)]
 
-if(drops[i]*fontSize>canvas.height && Math.random()>0.975)
-drops[i]=0
+ctx.fillText(text,i*font_size,drops[i]*font_size)
+
+if(drops[i]*font_size > canvas.height && Math.random() > 0.975)
+drops[i] = 0
 
 drops[i]++
-}
-
-}
-
-setInterval(draw,33)
-
-
-// TERMINAL TYPING
-
-const text = "Initializing cyber training environment... Access Granted."
-
-let i=0
-
-function typing(){
-
-if(i<text.length){
-
-document.getElementById("typing").innerHTML += text.charAt(i)
-
-i++
-
-setTimeout(typing,50)
 
 }
 
 }
 
-typing()
+setInterval(draw,35)
