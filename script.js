@@ -1,4 +1,4 @@
-const API_KEY="YOUR_GROQ_API_KEY"
+const API_KEY="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"
 
 const MODEL="llama-3.3-70b-versatile"
 
@@ -127,3 +127,4 @@ sendBtn.onclick=sendMessage
 input.addEventListener("keypress",e=>{
 if(e.key==="Enter") sendMessage()
 })
+
