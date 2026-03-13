@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 
 <head>
 
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
 <title>DEMON AI TERMINAL</title>
 
@@ -14,27 +14,19 @@
 
 <body>
 
-<canvas id="matrix"></canvas>
+<div class="app">
 
-<div class="container">
-
-<h1 class="title">🔥 DEMON AI TERMINAL 🔥</h1>
-
-<p class="subtitle">Cyber Intelligence System</p>
-
-<div class="terminal">
+<header>
+🔥 DEMON AI TERMINAL
+</header>
 
 <div id="chat"></div>
 
-<input id="prompt" placeholder="Enter command..." />
+<div class="input-area">
 
-<button onclick="askAI()">Execute</button>
+<input id="prompt" placeholder="Type command or question..." autocomplete="off">
 
-</div>
-
-<div class="footer">
-
-<p>Owner: @KAALCRACKERYT</p>
+<button onclick="sendMessage()">Send</button>
 
 </div>
 
