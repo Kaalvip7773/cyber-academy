@@ -5,16 +5,89 @@ const MODEL = "llama-3.3-70b-versatile"
 const SYSTEM_PROMPT =
 "You are WARM AI, a world-class cybersecurity and coding expert. Provide highly detailed, functional, and complete technical code."
 
-
-async function askAI(){
-
-const prompt = document.getElementById("prompt").value
-
 const chat = document.getElementById("chat")
+const input = document.getElementById("prompt")
 
-chat.innerHTML += "<p>> " + prompt + "</p>"
 
-document.getElementById("prompt").value = ""
+
+function addMessage(text, type){
+
+const div = document.createElement("div")
+
+div.className = "message " + type
+
+if(text.includes("```")){
+
+div.innerHTML = formatCode(text)
+
+}else{
+
+div.textContent = text
+
+}
+
+chat.appendChild(div)
+
+chat.scrollTop = chat.scrollHeight
+
+}
+
+
+
+function formatCode(text){
+
+const parts = text.split("```")
+
+let result=""
+
+for(let i=0;i<parts.length;i++){
+
+if(i%2==0){
+
+result += "<p>"+parts[i]+"</p>"
+
+}else{
+
+result += `
+<button class="copy-btn" onclick="copyCode(this)">Copy</button>
+<pre><code>${parts[i]}</code></pre>
+`
+
+}
+
+}
+
+return result
+
+}
+
+
+
+function copyCode(btn){
+
+const code = btn.nextElementSibling.innerText
+
+navigator.clipboard.writeText(code)
+
+btn.innerText="Copied!"
+
+setTimeout(()=>btn.innerText="Copy",2000)
+
+}
+
+
+
+async function sendMessage(){
+
+const prompt = input.value.trim()
+
+if(!prompt) return
+
+addMessage(prompt,"user")
+
+input.value=""
+
+
 
 const response = await fetch(
 "https://api.groq.com/openai/v1/chat/completions",
@@ -22,7 +95,7 @@ const response = await fetch(
 method:"POST",
 
 headers:{
-"Authorization":"Bearer " + API_KEY,
+"Authorization":"Bearer "+API_KEY,
 "Content-Type":"application/json"
 },
 
@@ -33,9 +106,7 @@ model:MODEL,
 messages:[
 {role:"system",content:SYSTEM_PROMPT},
 {role:"user",content:prompt}
-],
-
-temperature:0.7
+]
 
 })
 
@@ -46,69 +117,18 @@ const data = await response.json()
 
 const reply = data.choices[0].message.content
 
-chat.innerHTML += "<p style='color:#0ff'>" + reply + "</p>"
-
-chat.scrollTop = chat.scrollHeight
+addMessage(reply,"ai")
 
 }
 
 
 
+input.addEventListener("keypress",function(e){
 
+if(e.key==="Enter"){
 
-
-
-
-
-
-
-
-
-/* MATRIX EFFECT */
-
-const canvas = document.getElementById("matrix")
-
-const ctx = canvas.getContext("2d")
-
-canvas.height = window.innerHeight
-canvas.width = window.innerWidth
-
-const letters = "01"
-
-const matrix = letters.split("")
-
-const font_size = 14
-
-const columns = canvas.width / font_size
-
-const drops = []
-
-for(let x = 0; x < columns; x++)
-drops[x] = 1
-
-function draw(){
-
-ctx.fillStyle = "rgba(0,0,0,0.05)"
-
-ctx.fillRect(0,0,canvas.width,canvas.height)
-
-ctx.fillStyle = "#0f0"
-
-ctx.font = font_size + "px monospace"
-
-for(let i = 0; i < drops.length; i++){
-
-const text = matrix[Math.floor(Math.random()*matrix.length)]
-
-ctx.fillText(text,i*font_size,drops[i]*font_size)
-
-if(drops[i]*font_size > canvas.height && Math.random() > 0.975)
-drops[i] = 0
-
-drops[i]++
+sendMessage()
 
 }
 
-}
-
-setInterval(draw,35)
+})
