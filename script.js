@@ -9,122 +9,87 @@ const input=document.getElementById("prompt")
 const sendBtn=document.getElementById("sendBtn")
 
 function addMessage(text,type){
+    const div=document.createElement("div")
+    div.className="message "+type
 
-const div=document.createElement("div")
-div.className="message "+type
+    if(text.includes("```")){
+        div.innerHTML=formatCode(text)
+    }else{
+        div.textContent=text
+    }
 
-if(text.includes("```")){
-
-div.innerHTML=formatCode(text)
-
-}else{
-
-div.textContent=text
-
-}
-
-chat.appendChild(div)
-
-chat.scrollTop=chat.scrollHeight
-
+    chat.appendChild(div)
+    chat.scrollTop=chat.scrollHeight
 }
 
 function formatCode(text){
+    const parts=text.split("```")
+    let html=""
 
-const parts=text.split("```")
-
-let html=""
-
-for(let i=0;i<parts.length;i++){
-
-if(i%2==0){
-
-html+="<p>"+parts[i]+"</p>"
-
-}else{
-
-html+=`
-<button class="copy" onclick="copyCode(this)">Copy</button>
-<pre><code>${parts[i]}</code></pre>
-`
-
-}
-
-}
-
-return html
-
+    for(let i=0;i<parts.length;i++){
+        if(i%2==0){
+            html+="<p>"+parts[i]+"</p>"
+        }else{
+            html+=`
+            <button class="copy" onclick="copyCode(this)">Copy</button>
+            <pre><code>${parts[i]}</code></pre>
+            `
+        }
+    }
+    return html
 }
 
 function copyCode(btn){
-
-const code=btn.nextElementSibling.innerText
-
-navigator.clipboard.writeText(code)
-
-btn.innerText="Copied"
-
-setTimeout(()=>btn.innerText="Copy",1500)
-
+    const code=btn.nextElementSibling.innerText
+    navigator.clipboard.writeText(code)
+    btn.innerText="Copied"
+    setTimeout(()=>btn.innerText="Copy",1500)
 }
 
 async function sendMessage(){
+    const prompt=input.value.trim()
+    if(!prompt) return
 
-const prompt=input.value.trim()
+    addMessage(prompt,"user")
+    input.value=""
+    addMessage("Thinking...","ai")
 
-if(!prompt) return
+    try{
 
-addMessage(prompt,"user")
+        const res=await fetch("https://api.allorigins.win/raw?url=https://api.groq.com/openai/v1/chat/completions",{
+            method:"POST",
+            headers:{
+                "Authorization":"Bearer "+API_KEY,
+                "Content-Type":"application/json"
+            },
+            body:JSON.stringify({
+                model:MODEL,
+                messages:[
+                    {role:"system",content:SYSTEM_PROMPT},
+                    {role:"user",content:prompt}
+                ]
+            })
+        })
 
-input.value=""
+        if(!res.ok){
+            throw new Error("API error")
+        }
 
-addMessage("Thinking...","ai")
+        const data=await res.json()
 
-try{
+        chat.lastChild.remove()
 
-const res=await fetch(
-"https://api.groq.com/openai/v1/chat/completions",
-{
-method:"POST",
+        addMessage(data.choices[0].message.content,"ai")
 
-headers:{
-"Authorization":"Bearer "+API_KEY,
-"Content-Type":"application/json"
-},
-
-body:JSON.stringify({
-
-model:MODEL,
-
-messages:[
-{role:"system",content:SYSTEM_PROMPT},
-{role:"user",content:prompt}
-]
-
-})
-
-}
-)
-
-const data=await res.json()
-
-chat.lastChild.remove()
-
-addMessage(data.choices[0].message.content,"ai")
-
-}catch(e){
-
-chat.lastChild.remove()
-
-addMessage("Error connecting AI","ai")
-
-}
-
+    }catch(e){
+        chat.lastChild.remove()
+        console.error(e)
+        addMessage("❌ API Error or CORS Blocked","ai")
+    }
 }
 
 sendBtn.onclick=sendMessage
 
 input.addEventListener("keypress",e=>{
-if(e.key==="Enter") sendMessage()
+    if(e.key==="Enter") sendMessage()
 })
-
