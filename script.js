@@ -56,35 +56,45 @@ async function sendMessage(){
 
     try{
 
-        const res=await fetch("https://api.allorigins.win/raw?url=https://api.groq.com/openai/v1/chat/completions",{
-            method:"POST",
-            headers:{
-                "Authorization":"Bearer "+API_KEY,
-                "Content-Type":"application/json"
+        const res = await fetch("https://corsproxy.io/?https://api.groq.com/openai/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                "Authorization": "Bearer " + API_KEY,
+                "Content-Type": "application/json"
             },
-            body:JSON.stringify({
-                model:MODEL,
-                messages:[
-                    {role:"system",content:SYSTEM_PROMPT},
-                    {role:"user",content:prompt}
+            body: JSON.stringify({
+                model: MODEL,
+                messages: [
+                    { role: "system", content: SYSTEM_PROMPT },
+                    { role: "user", content: prompt }
                 ]
             })
         })
 
-        if(!res.ok){
-            throw new Error("API error")
+        const text = await res.text()
+
+        // DEBUG (important)
+        console.log("RAW RESPONSE:", text)
+
+        let data
+        try {
+            data = JSON.parse(text)
+        } catch {
+            throw new Error("Invalid JSON (proxy issue)")
         }
 
-        const data=await res.json()
-
         chat.lastChild.remove()
+
+        if(!data.choices){
+            throw new Error("API blocked / invalid key / proxy failed")
+        }
 
         addMessage(data.choices[0].message.content,"ai")
 
     }catch(e){
         chat.lastChild.remove()
         console.error(e)
-        addMessage("❌ API Error or CORS Blocked","ai")
+        addMessage("❌ Error: API blocked or CORS issue","ai")
     }
 }
 
