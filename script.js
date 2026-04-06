@@ -1,5 +1,3 @@
-const API_KEY="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"
-
 const MODEL="llama-3.3-70b-versatile"
 
 const SYSTEM_PROMPT="You are WARM AI Designed By @KAALCRACKERYT, a world-class cybersecurity and coding expert. Provide highly detailed functional code."
@@ -55,11 +53,9 @@ async function sendMessage(){
     addMessage("Thinking...","ai")
 
     try{
-
-        const res = await fetch("https://corsproxy.io/?https://api.groq.com/openai/v1/chat/completions", {
+        const res = await fetch("http://localhost:3000/api/chat", {
             method: "POST",
             headers: {
-                "Authorization": "Bearer " + API_KEY,
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
@@ -71,30 +67,19 @@ async function sendMessage(){
             })
         })
 
-        const text = await res.text()
-
-        // DEBUG (important)
-        console.log("RAW RESPONSE:", text)
-
-        let data
-        try {
-            data = JSON.parse(text)
-        } catch {
-            throw new Error("Invalid JSON (proxy issue)")
-        }
+        const data = await res.json()
 
         chat.lastChild.remove()
 
         if(!data.choices){
-            throw new Error("API blocked / invalid key / proxy failed")
+            throw new Error("API error")
         }
 
         addMessage(data.choices[0].message.content,"ai")
 
     }catch(e){
         chat.lastChild.remove()
-        console.error(e)
-        addMessage("❌ Error: API blocked or CORS issue","ai")
+        addMessage("❌ Server not running or API error","ai")
     }
 }
 
